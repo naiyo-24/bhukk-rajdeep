@@ -93,7 +93,9 @@ class AppRoutes {
     GetPage(
       name: Routes.orderLiquor,
       page: () {
-        final orderLiquor.LiquorOrder? order = Get.arguments as orderLiquor.LiquorOrder?;
+        // Safely handle arguments that might be null
+        final args = Get.arguments;
+        final orderLiquor.LiquorOrder? order = args is orderLiquor.LiquorOrder ? args : null;
         return orderLiquor.OrderLiquorScreen(order: order);
       },
       transition: Transition.rightToLeft,
@@ -111,8 +113,12 @@ class AppRoutes {
     GetPage(
       name: Routes.categoryItems,
       page: () {
-        final args = Get.arguments as Map<String, dynamic>?;
-        return CategoryItemsScreen(category: args?['category'] ?? '');
+        final args = Get.arguments;
+        String category = '';
+        if (args is Map<String, dynamic> && args.containsKey('category')) {
+          category = args['category']?.toString() ?? '';
+        }
+        return CategoryItemsScreen(category: category);
       },
       transition: Transition.rightToLeft,
     ),
@@ -124,8 +130,12 @@ class AppRoutes {
     GetPage(
       name: Routes.liquorShops,
       page: () {
-        final args = Get.arguments as Map<String, dynamic>?;
-        return LiquorShopDetailScreen(shop: args?['shop']);
+        final args = Get.arguments;
+        dynamic shop;
+        if (args is Map<String, dynamic> && args.containsKey('shop')) {
+          shop = args['shop'];
+        }
+        return LiquorShopDetailScreen(shop: shop);
       },
       transition: Transition.rightToLeft,
     ),
@@ -142,7 +152,8 @@ class AppRoutes {
     GetPage(
       name: Routes.restaurantTableBook,
       page: () {
-        final Restaurant? restaurant = Get.arguments as Restaurant?;
+        final args = Get.arguments;
+        final Restaurant? restaurant = args is Restaurant ? args : null;
         return RestaurantTableBook(restaurant: restaurant);
       },
       transition: Transition.rightToLeft,
@@ -150,10 +161,16 @@ class AppRoutes {
     GetPage(
       name: Routes.menuCard,
       page: () {
-        final args = Get.arguments as Map<String, dynamic>?;
+        final args = Get.arguments;
+        String restaurantName = '';
+        String restaurantId = '';
+        if (args is Map<String, dynamic>) {
+          restaurantName = args['restaurantName']?.toString() ?? '';
+          restaurantId = args['restaurantId']?.toString() ?? '';
+        }
         return MenuCard(
-          restaurantName: args?['restaurantName'] ?? '',
-          restaurantId: args?['restaurantId'] ?? '',
+          restaurantName: restaurantName,
+          restaurantId: restaurantId,
         );
       },
       transition: Transition.rightToLeft,
@@ -165,7 +182,14 @@ class AppRoutes {
     ),
     GetPage(
       name: Routes.cardPayment,
-      page: () => CardPaymentScreen(paymentMethod: Get.arguments ?? 'Credit Card'),
+      page: () {
+        final args = Get.arguments;
+        String paymentMethod = 'Credit Card';
+        if (args is String) {
+          paymentMethod = args;
+        }
+        return CardPaymentScreen(paymentMethod: paymentMethod);
+      },
       transition: Transition.rightToLeft,
     ),
     GetPage(

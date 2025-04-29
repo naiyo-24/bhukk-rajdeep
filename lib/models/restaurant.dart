@@ -51,6 +51,90 @@ class Restaurant {
     );
   }
 
+  /// Creates a dummy restaurant with placeholder data when actual data is unavailable
+  /// This helps show a proper UI instead of an error screen
+  /// 
+  /// @param id Optional ID for the dummy restaurant
+  /// @return Restaurant instance with placeholder data
+  static Restaurant dummy({String id = 'dummy-restaurant'}) {
+    return Restaurant(
+      id: id,
+      name: 'Sample Restaurant',
+      imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80',
+      location: 'City Center, Downtown',
+      cuisine: 'Multi-Cuisine',
+      rating: 4.5,
+      priceRange: '₹₹₹',
+      isOpen: true,
+      menuCategories: [
+        'Starters', 'Main Course', 'Desserts', 'Beverages'
+      ],
+      operatingHours: {
+        'Monday': '11:00 AM - 11:00 PM',
+        'Tuesday': '11:00 AM - 11:00 PM',
+        'Wednesday': '11:00 AM - 11:00 PM',
+        'Thursday': '11:00 AM - 11:00 PM',
+        'Friday': '11:00 AM - 12:00 AM',
+        'Saturday': '11:00 AM - 12:00 AM',
+        'Sunday': '11:00 AM - 11:00 PM',
+      },
+      theme: 'Contemporary',
+      pricePerTable: 999.0,
+      availableTables: 8,
+    );
+  }
+
+  /// Creates a list of dummy restaurants for use in lists when real data is unavailable
+  /// 
+  /// @param count Number of dummy restaurants to create
+  /// @return List of Restaurant instances with placeholder data
+  static List<Restaurant> dummyList(int count) {
+    List<Restaurant> dummies = [];
+    List<String> cuisines = [
+      'North Indian', 'Chinese', 'Italian', 'Continental', 'South Indian', 'Thai'
+    ];
+    List<String> names = [
+      'Gourmet Kitchen', 'Spice Garden', 'Fusion Bistro', 'Royal Dining', 
+      'Coastal Flavors', 'Urban Café', 'Elegant Eatery', 'Foodie Paradise'
+    ];
+    List<String> images = [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80',
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80',
+      'https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?q=80',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80',
+      'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80',
+    ];
+    
+    for (int i = 0; i < count; i++) {
+      dummies.add(Restaurant(
+        id: 'dummy-restaurant-${i+1}',
+        name: names[i % names.length],
+        imageUrl: images[i % images.length],
+        location: 'Location ${i+1}',
+        cuisine: cuisines[i % cuisines.length],
+        rating: 3.5 + (i % 3) * 0.5,
+        priceRange: List.filled((i % 3) + 1, '₹').join(''),
+        isOpen: i % 3 != 0,
+        menuCategories: [
+          'Starters', 'Main Course', 'Desserts', 'Beverages'
+        ],
+        operatingHours: {
+          'Monday': '11:00 AM - 11:00 PM',
+          'Tuesday': '11:00 AM - 11:00 PM',
+          'Wednesday': '11:00 AM - 11:00 PM',
+          'Thursday': '11:00 AM - 11:00 PM',
+          'Friday': '11:00 AM - 12:00 AM',
+          'Saturday': '11:00 AM - 12:00 AM',
+          'Sunday': '11:00 AM - 11:00 PM',
+        },
+        theme: i % 2 == 0 ? 'Contemporary' : 'Traditional',
+        pricePerTable: 699.0 + (i * 100),
+        availableTables: 5 + (i % 6),
+      ));
+    }
+    return dummies;
+  }
+
   // Convert Restaurant instance to JSON
   Map<String, dynamic> toJson() {
     return {
