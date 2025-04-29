@@ -7,4 +7,5 @@ class ApiUrl {
   static const String getEmergencyContacts = 'users/{user_id}/emergency-contacts';
   static const String updateEmergencyContact = 'users/{user_id}/emergency-contacts/{id}';
   static const String deleteEmergencyContact = 'users/{user_id}/emergency-contacts/{id}';
+  static const String restaurants = 'v1/restaurants/';
 }

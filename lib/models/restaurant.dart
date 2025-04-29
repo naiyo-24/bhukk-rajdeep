@@ -35,19 +35,19 @@ class Restaurant {
   // Factory constructor to create a Restaurant from JSON
   factory Restaurant.fromJson(Map<String, dynamic> json) {
     return Restaurant(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      imageUrl: json['imageUrl'] as String,
-      location: json['location'] as String,
-      cuisine: json['cuisine'] as String,
-      rating: (json['rating'] as num).toDouble(),
-      priceRange: json['priceRange'] as String,
-      isOpen: json['isOpen'] as bool,
-      menuCategories: List<String>.from(json['menuCategories'] as List),
-      operatingHours: json['operatingHours'] as Map<String, dynamic>,
-      theme: json['theme'] as String,
-      pricePerTable: (json['pricePerTable'] as num).toDouble(),
-      availableTables: json['availableTables'] as int,
+      id: json['id'],
+      name: json['name'],
+      theme: json['theme'],
+      location: json['location'],
+      imageUrl: json['image_url'],
+      availableTables: json['available_tables'],
+      pricePerTable: json['price_per_table'].toDouble(),
+      cuisine: json['cuisine'],
+      rating: json['rating'].toDouble(),
+      priceRange: json['price_range'],
+      isOpen: json['is_open'],
+      menuCategories: List<String>.from(json['menu_categories']),
+      operatingHours: Map<String, Map<String, String>>.from(json['operating_hours']),
     );
   }
 

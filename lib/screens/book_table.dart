@@ -4,6 +4,8 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../models/restaurant.dart';
 import '../route/routes.dart';
+import '../services/api_service.dart';
+import '../services/api_url.dart';
 
 class BookTableScreen extends StatefulWidget {
   final String? restaurantName;
@@ -21,147 +23,9 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
   late AnimationController _controller;
   late ScrollController _scrollController;
   double _scrollOffset = 0;
-
-  final List<Restaurant> restaurants = [
-    Restaurant(
-      id: 'r1',
-      name: "La Luna Elegante",
-      theme: "Moonlight Fine Dining",
-      location: "Downtown Square",
-      imageUrl: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80",
-      availableTables: 5,
-      pricePerTable: 299.99,
-      cuisine: "Fine Dining",
-      rating: 4.8,
-      priceRange: r"$$$",
-      isOpen: true,
-      menuCategories: ["Fine Dining", "Wine", "Gourmet"],
-      operatingHours: {
-        "monday": {"open": "18:00", "close": "23:00"},
-        "tuesday": {"open": "18:00", "close": "23:00"},
-        "wednesday": {"open": "18:00", "close": "23:00"},
-        "thursday": {"open": "18:00", "close": "23:00"},
-        "friday": {"open": "18:00", "close": "00:00"},
-        "saturday": {"open": "18:00", "close": "00:00"},
-        "sunday": {"open": "18:00", "close": "23:00"},
-      },
-    ),
-    Restaurant(
-      id: 'r2',
-      name: "Candlelight Romance",
-      theme: "Romantic Candlelight Dinner",
-      location: "Marina Bay",
-      imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80",
-      availableTables: 3,
-      pricePerTable: 349.99,
-      cuisine: "French",
-      rating: 4.9,
-      priceRange: r"$$$$",
-      isOpen: true,
-      menuCategories: ["French", "Wine", "Romantic"],
-      operatingHours: {
-        "monday": {"open": "17:00", "close": "23:00"},
-        "tuesday": {"open": "17:00", "close": "23:00"},
-        "wednesday": {"open": "17:00", "close": "23:00"},
-        "thursday": {"open": "17:00", "close": "23:00"},
-        "friday": {"open": "17:00", "close": "00:00"},
-        "saturday": {"open": "17:00", "close": "00:00"},
-        "sunday": {"open": "17:00", "close": "23:00"},
-      },
-    ),
-    Restaurant(
-      id: 'r3',
-      name: "The Royal Feast",
-      theme: "Royal Dining Experience",
-      location: "Palace District",
-      imageUrl: "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80",
-      availableTables: 7,
-      pricePerTable: 499.99,
-      cuisine: "Royal",
-      rating: 4.7,
-      priceRange: r"$$$$",
-      isOpen: true,
-      menuCategories: ["Royal", "Gourmet", "Wine"],
-      operatingHours: {
-        "monday": {"open": "18:00", "close": "23:00"},
-        "tuesday": {"open": "18:00", "close": "23:00"},
-        "wednesday": {"open": "18:00", "close": "23:00"},
-        "thursday": {"open": "18:00", "close": "23:00"},
-        "friday": {"open": "18:00", "close": "00:00"},
-        "saturday": {"open": "18:00", "close": "00:00"},
-        "sunday": {"open": "18:00", "close": "23:00"},
-      },
-    ),
-    Restaurant(
-      id: 'r4',
-      name: "Skyline Bistro",
-      theme: "Rooftop Dining",
-      location: "City Center",
-      imageUrl: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?q=80",
-      availableTables: 4,
-      pricePerTable: 399.99,
-      cuisine: "Bistro",
-      rating: 4.6,
-      priceRange: r"$$$",
-      isOpen: true,
-      menuCategories: ["Bistro", "Wine", "Rooftop"],
-      operatingHours: {
-        "monday": {"open": "18:00", "close": "23:00"},
-        "tuesday": {"open": "18:00", "close": "23:00"},
-        "wednesday": {"open": "18:00", "close": "23:00"},
-        "thursday": {"open": "18:00", "close": "23:00"},
-        "friday": {"open": "18:00", "close": "00:00"},
-        "saturday": {"open": "18:00", "close": "00:00"},
-        "sunday": {"open": "18:00", "close": "23:00"},
-      },
-    ),
-    Restaurant(
-      id: 'r5',
-      name: "Garden Paradise",
-      theme: "Garden Restaurant",
-      location: "Botanical Gardens",
-      imageUrl: "https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?q=80",
-      availableTables: 6,
-      pricePerTable: 249.99,
-      cuisine: "Garden",
-      rating: 4.5,
-      priceRange: r"$$",
-      isOpen: true,
-      menuCategories: ["Garden", "Vegetarian", "Organic"],
-      operatingHours: {
-        "monday": {"open": "18:00", "close": "23:00"},
-        "tuesday": {"open": "18:00", "close": "23:00"},
-        "wednesday": {"open": "18:00", "close": "23:00"},
-        "thursday": {"open": "18:00", "close": "23:00"},
-        "friday": {"open": "18:00", "close": "00:00"},
-        "saturday": {"open": "18:00", "close": "00:00"},
-        "sunday": {"open": "18:00", "close": "23:00"},
-      },
-    ),
-    Restaurant(
-      id: 'r6',
-      name: "Oriental Pearl",
-      theme: "Asian Fusion",
-      location: "East Side",
-      imageUrl: "https://images.unsplash.com/photo-1526069631228-723c945bea6b?q=80",
-      availableTables: 8,
-      pricePerTable: 279.99,
-      cuisine: "Asian",
-      rating: 4.7,
-      priceRange: r"$$$",
-      isOpen: true,
-      menuCategories: ["Asian", "Fusion", "Gourmet"],
-      operatingHours: {
-        "monday": {"open": "18:00", "close": "23:00"},
-        "tuesday": {"open": "18:00", "close": "23:00"},
-        "wednesday": {"open": "18:00", "close": "23:00"},
-        "thursday": {"open": "18:00", "close": "23:00"},
-        "friday": {"open": "18:00", "close": "00:00"},
-        "saturday": {"open": "18:00", "close": "00:00"},
-        "sunday": {"open": "18:00", "close": "23:00"},
-      },
-    ),
-  ];
+  final ApiService _apiService = ApiService();
+  List<Restaurant> restaurants = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -176,6 +40,27 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
           _scrollOffset = _scrollController.offset;
         });
       });
+    _fetchRestaurants();
+  }
+
+  Future<void> _fetchRestaurants() async {
+    try {
+      final response = await _apiService.get(ApiUrl.restaurants);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'];
+        setState(() {
+          restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load restaurants')),
+      );
+    }
   }
 
   @override
@@ -212,59 +97,61 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
           });
         },
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (scrollNotification) {
-          if (scrollNotification is ScrollUpdateNotification) {
-            setState(() {
-              _scrollOffset = _scrollController.offset;
-            });
-          }
-          return true;
-        },
-        child: ListView.builder(
-          controller: _scrollController,
-          padding: EdgeInsets.only(top: 100, bottom: 20),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          itemCount: restaurants.length,
-          itemBuilder: (context, index) {
-            return AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: Offset(0, 0.2),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: _controller,
-                      curve: Interval(
-                        (index * 0.1).clamp(0, 1),
-                        ((index + 1) * 0.1).clamp(0, 1),
-                        curve: Curves.easeOutQuart,
-                      ),
-                    ),
-                  ),
-                  child: FadeTransition(
-                    opacity: Tween<double>(begin: 0, end: 1).animate(
-                      CurvedAnimation(
-                        parent: _controller,
-                        curve: Interval(
-                          (index * 0.1).clamp(0, 1),
-                          ((index + 1) * 0.1).clamp(0, 1),
-                          curve: Curves.easeOut,
-                        ),
-                      ),
-                    ),
-                    child: _buildRestaurantCard(context, restaurants[index]),
-                  ),
-                );
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : NotificationListener<ScrollNotification>(
+              onNotification: (scrollNotification) {
+                if (scrollNotification is ScrollUpdateNotification) {
+                  setState(() {
+                    _scrollOffset = _scrollController.offset;
+                  });
+                }
+                return true;
               },
-            );
-          },
-        ),
-      ),
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.only(top: 100, bottom: 20),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                itemCount: restaurants.length,
+                itemBuilder: (context, index) {
+                  return AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: Offset(0, 0.2),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _controller,
+                            curve: Interval(
+                              (index * 0.1).clamp(0, 1),
+                              ((index + 1) * 0.1).clamp(0, 1),
+                              curve: Curves.easeOutQuart,
+                            ),
+                          ),
+                        ),
+                        child: FadeTransition(
+                          opacity: Tween<double>(begin: 0, end: 1).animate(
+                            CurvedAnimation(
+                              parent: _controller,
+                              curve: Interval(
+                                (index * 0.1).clamp(0, 1),
+                                ((index + 1) * 0.1).clamp(0, 1),
+                                curve: Curves.easeOut,
+                              ),
+                            ),
+                          ),
+                          child: _buildRestaurantCard(context, restaurants[index]),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
     );
   }
 
