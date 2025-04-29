@@ -175,21 +175,19 @@ class _RestaurantTableBookState extends State<RestaurantTableBook> with SingleTi
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.orange,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.9),
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_back_ios_new, size: 16),
           ),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          dummyName,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text(dummyName),
       ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
