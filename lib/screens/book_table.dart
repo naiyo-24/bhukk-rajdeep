@@ -47,18 +47,19 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
     try {
       final response = await _apiService.get(ApiUrl.restaurants);
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'];
+        final List<dynamic> data = response.data; // Remove ['data'] since the response is directly an array
         setState(() {
           restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
           _isLoading = false;
         });
       }
     } catch (e) {
+      print('Error fetching restaurants: $e'); // Add debug print
       setState(() {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load restaurants')),
+        SnackBar(content: Text('Failed to load restaurants: ${e.toString()}')),
       );
     }
   }
@@ -174,18 +175,24 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {},
+            onTap: () {
+              Get.toNamed(
+                Routes.restaurantTableBook,
+                arguments: restaurant,
+              );
+            },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Hero(
-                  tag: 'restaurant-${restaurant.name}',
+                  tag: 'restaurant-${restaurant.id}',
                   child: Container(
                     height: 200,
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: NetworkImage(restaurant.imageUrl),
                         fit: BoxFit.cover,
+                        onError: (exception, stackTrace) => print('Error loading image: $exception'),
                       ),
                     ),
                     child: Stack(
@@ -226,11 +233,13 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
                               ),
                               SizedBox(height: 8),
                               Text(
-                                restaurant.theme,
+                                restaurant.description,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 16,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -247,11 +256,15 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            restaurant.cuisine,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Text(
+                              restaurant.name,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Container(
@@ -265,7 +278,7 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
                                 Icon(Icons.star, color: Colors.white, size: 16),
                                 SizedBox(width: 4),
                                 Text(
-                                  restaurant.rating.toString(),
+                                  restaurant.rating.toStringAsFixed(1),
                                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -274,13 +287,25 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
                         ],
                       ),
                       SizedBox(height: 8),
+                      Text(
+                        restaurant.cuisineType,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 8),
                       Row(
                         children: [
                           Icon(Icons.location_on, color: Colors.grey, size: 16),
                           SizedBox(width: 4),
-                          Text(
-                            restaurant.location,
-                            style: TextStyle(color: Colors.grey[600]),
+                          Expanded(
+                            child: Text(
+                              restaurant.address,
+                              style: TextStyle(color: Colors.grey[600]),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
