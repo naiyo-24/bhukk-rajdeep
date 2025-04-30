@@ -2,20 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/ads_carousel.dart';
+import '../models/carousel.dart';
+import '../services/api_service.dart';
+import '../services/api_url.dart';
 import 'delivery_partner_contact_screen.dart';
 import '../route/routes.dart';
 
-class TrackOrderScreen extends StatelessWidget {
+class TrackOrderScreen extends StatefulWidget {
   const TrackOrderScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<String> adImages = [
-      'assets/images/ad1.jpg',
-      'assets/images/ad2.jpg',
-      'assets/images/ad3.jpg',
-    ];
+  State<TrackOrderScreen> createState() => _TrackOrderScreenState();
+}
 
+class _TrackOrderScreenState extends State<TrackOrderScreen> {
+  final ApiService _apiService = ApiService();
+  List<Carousel> carousels = [];
+  bool _isLoadingCarousels = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCarousels();
+  }
+
+  Future<void> _fetchCarousels() async {
+    try {
+      final response = await _apiService.get(ApiUrl.carousels);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        setState(() {
+          carousels = data.map((json) => Carousel.fromJson(json)).toList();
+          _isLoadingCarousels = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching carousels: $e');
+      setState(() {
+        _isLoadingCarousels = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -104,12 +134,22 @@ class TrackOrderScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            AdsCarousel(
-              adImages: adImages,
-              height: 230,
-              viewportFraction: 0.85,
-              onTap: () => Get.toNamed(Routes.orderDetails),
-            ),
+            _isLoadingCarousels
+                ? const SizedBox(
+                    height: 230,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : AdsCarousel(
+                    carousels: carousels,
+                    height: 230,
+                    viewportFraction: 0.85,
+                    onTap: (String? link) {
+                      if (link != null) {
+                        // Handle link navigation
+                        print('Navigate to: $link');
+                      }
+                    },
+                  ),
             const SizedBox(height: 16),
           ],
         ),

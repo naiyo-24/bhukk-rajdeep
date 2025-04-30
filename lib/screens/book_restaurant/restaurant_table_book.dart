@@ -1,3 +1,5 @@
+import 'package:bhukk1/services/api_service.dart';
+import 'package:bhukk1/services/api_url.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
@@ -40,15 +42,39 @@ class _RestaurantTableBookState extends State<RestaurantTableBook> with SingleTi
   late AnimationController _animationController;
   double _headerImageOpacity = 1.0;
 
+  final ApiService _apiService = ApiService();
+  Restaurant? restaurantDetails;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _fetchRestaurantDetails();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+  }
+
+  Future<void> _fetchRestaurantDetails() async {
+    try {
+      if (widget.restaurant != null) {
+        final response = await _apiService.get(
+          ApiUrl.restaurantDetails.replaceAll('{id}', widget.restaurant!.id.toString())
+        );
+        if (response.statusCode == 200) {
+          setState(() {
+            restaurantDetails = Restaurant.fromJson(response.data);
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching restaurant details: $e');
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -549,6 +575,12 @@ class _RestaurantTableBookState extends State<RestaurantTableBook> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     if (widget.restaurant == null) {
       // Provide dummy data placeholder when restaurant is null
       return _buildPlaceholderRestaurant(context);

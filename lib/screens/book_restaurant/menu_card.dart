@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../../providers/cart_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../route/routes.dart';
+import '../../services/api_service.dart';
+import '../../services/api_url.dart';
 
 class MenuCard extends StatefulWidget {
   final String restaurantName;
@@ -20,32 +22,39 @@ class MenuCard extends StatefulWidget {
 }
 
 class _MenuCardState extends State<MenuCard> {
-  final List<Map<String, dynamic>> menuItems = [
-    {
-      'name': 'Classic Burger',
-      'description': 'Juicy beef patty with fresh veggies',
-      'price': '199',
-      'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80',
-      'category': 'Main Course'
-    },
-    {
-      'name': 'Margherita Pizza',
-      'description': 'Fresh tomatoes, mozzarella, and basil',
-      'price': '299',
-      'image': 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?q=80',
-      'category': 'Main Course'
-    },
-    {
-      'name': 'Caesar Salad',
-      'description': 'Crisp romaine lettuce with Caesar dressing',
-      'price': '149',
-      'image': 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?q=80',
-      'category': 'Starters'
-    },
-  ];
-
+  final ApiService _apiService = ApiService();
+  List<Map<String, dynamic>> menuItems = [];
+  bool _isLoading = true;
+  
   String selectedCategory = 'All';
   final List<String> categories = ['All', 'Main Course', 'Starters', 'Desserts'];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRestaurantMenu();
+  }
+
+  Future<void> _fetchRestaurantMenu() async {
+    try {
+      final response = await _apiService.get(
+        ApiUrl.restaurantMenu.replaceAll('{id}', widget.restaurantId)
+      );
+      
+      if (response.statusCode == 200) {
+        setState(() {
+          menuItems = List<Map<String, dynamic>>.from(response.data);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching menu: $e');
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load menu: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,178 +73,184 @@ class _MenuCardState extends State<MenuCard> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    selected: selectedCategory == categories[index],
-                    label: Text(categories[index]),
-                    onSelected: (bool selected) {
-                      setState(() {
-                        selectedCategory = categories[index];
-                      });
-                    },
-                    selectedColor: Theme.of(context).primaryColor,
-                    labelStyle: TextStyle(
-                      color: selectedCategory == categories[index]
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: menuItems.where((item) =>
-                selectedCategory == 'All' ||
-                item['category'] == selectedCategory
-              ).length,
-              itemBuilder: (context, index) {
-                final filteredItems = menuItems.where((item) =>
-                  selectedCategory == 'All' ||
-                  item['category'] == selectedCategory
-                ).toList();
-                final item = filteredItems[index];
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 180,
-                          width: double.infinity,
-                          child: CachedNetworkImage(
-                            imageUrl: item['image'],
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.restaurant_menu, size: 40),
-                            ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Container(
+                  height: 60,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          selected: selectedCategory == categories[index],
+                          label: Text(categories[index]),
+                          onSelected: (bool selected) {
+                            setState(() {
+                              selectedCategory = categories[index];
+                            });
+                          },
+                          selectedColor: Theme.of(context).primaryColor,
+                          labelStyle: TextStyle(
+                            color: selectedCategory == categories[index]
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
-                        Padding(
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: menuItems.isEmpty
+                      ? const Center(
+                          child: Text('No menu items available'),
+                        )
+                      : ListView.builder(
                           padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item['name'],
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          item['description'],
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '₹${item['price']}',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).primaryColor,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          final cartProvider = Provider.of<CartProvider>(
-                                            context,
-                                            listen: false,
-                                          );
-                                          cartProvider.addItem(
-                                            item['name'],
-                                            item['price'],
-                                            item['image'],
-                                            1  // Adding initial quantity of 1
-                                          );
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('${item['name']} added to cart'),
-                                              action: SnackBarAction(
-                                                label: 'View Cart',
-                                                onPressed: () {
-                                                  Get.toNamed(Routes.cart);
-                                                },
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Theme.of(context).primaryColor,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: const Text('Add to Cart'),
-                                      ),
-                                    ],
+                          itemCount: menuItems.where((item) =>
+                            selectedCategory == 'All' ||
+                            item['category'] == selectedCategory
+                          ).length,
+                          itemBuilder: (context, index) {
+                            final filteredItems = menuItems.where((item) =>
+                              selectedCategory == 'All' ||
+                              item['category'] == selectedCategory
+                            ).toList();
+                            final item = filteredItems[index];
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      height: 180,
+                                      width: double.infinity,
+                                      child: CachedNetworkImage(
+                                        imageUrl: item['image'],
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => Container(
+                                          color: Colors.grey[200],
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(Icons.restaurant_menu, size: 40),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      item['name'],
+                                                      style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      item['description'],
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    '₹${item['price']}',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Theme.of(context).primaryColor,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      final cartProvider = Provider.of<CartProvider>(
+                                                        context,
+                                                        listen: false,
+                                                      );
+                                                      cartProvider.addItem(
+                                                        item['name'],
+                                                        item['price'],
+                                                        item['image'],
+                                                        1  // Adding initial quantity of 1
+                                                      );
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text('${item['name']} added to cart'),
+                                                          action: SnackBarAction(
+                                                            label: 'View Cart',
+                                                            onPressed: () {
+                                                              Get.toNamed(Routes.cart);
+                                                            },
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Theme.of(context).primaryColor,
+                                                      foregroundColor: Colors.white,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                    ),
+                                                    child: const Text('Add to Cart'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

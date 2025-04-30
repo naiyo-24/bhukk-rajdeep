@@ -7,6 +7,10 @@ import '../widgets/bhukkads_carousel.dart';
 import '../widgets/confetti_overlay.dart';
 import '../route/routes.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../services/api_service.dart';
+import '../services/api_url.dart';
+import '../models/restaurant.dart';
+import '../models/carousel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -148,7 +152,12 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   final ScrollController _scrollController = ScrollController();
+  final ApiService _apiService = ApiService();
   bool _isInitialized = false;
+  bool _isLoading = true;
+  List<Restaurant> restaurants = [];
+  List<Carousel> carousels = [];
+  bool _isLoadingCarousels = true;
 
   @override
   void initState() {
@@ -158,6 +167,44 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
       vsync: this,
     );
     _animationController.forward();
+    _fetchRestaurants();
+    _fetchCarousels();
+  }
+
+  Future<void> _fetchRestaurants() async {
+    try {
+      final response = await _apiService.get(ApiUrl.restaurants);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        setState(() {
+          restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching restaurants: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchCarousels() async {
+    try {
+      final response = await _apiService.get(ApiUrl.carousels);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        setState(() {
+          carousels = data.map((json) => Carousel.fromJson(json)).toList();
+          _isLoadingCarousels = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching carousels: $e');
+      setState(() {
+        _isLoadingCarousels = false;
+      });
+    }
   }
 
   @override
@@ -376,16 +423,22 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AdsCarousel(
-          adImages: const [
-            'assets/images/ad1.jpg',
-            'assets/images/ad2.jpg',
-            'assets/images/ad3.jpg',
-          ],
-          height: 240, // Increased height
-          viewportFraction: 0.92, // Adjusted for better visibility
-          onTap: () async {},
-        ),
+        _isLoadingCarousels
+            ? const SizedBox(
+                height: 240,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : AdsCarousel(
+                carousels: carousels,
+                height: 240,
+                viewportFraction: 0.92,
+                onTap: (String? link) {
+                  if (link != null) {
+                    // Handle link navigation
+                    print('Navigate to: $link');
+                  }
+                },
+              ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 12, 16, 8), // Reduced padding from 24 to 12
@@ -450,122 +503,108 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
           ),
         ),
 
-        ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 5, // Changed from 6 to 5
-          addAutomaticKeepAlives: false,
-          itemBuilder: (context, index) {
-            return Container(
-              height: 150, // Increased from 140
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(20),
+        _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: restaurants.length,
+                addAutomaticKeepAlives: false,
+                itemBuilder: (context, index) {
+                  final restaurant = restaurants[index];
+                  return Container(
+                    height: 150,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                    child: SizedBox(
-                      width: 120, // Reduced from 140
-                      height: 150,
-                      child: Image.asset(
-                        'assets/cafes/restaurant.jpg',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8), // Reduced padding
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'Restaurant ${index + 1}',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(20),
+                          ),
+                          child: SizedBox(
+                            width: 120,
+                            height: 150,
+                            child: Image.network(
+                              restaurant.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/cafes/restaurant.jpg',
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Icon(
-                                          Icons.star,
-                                          size: 16,
-                                          color: Colors.green.shade700,
+                                        Expanded(
+                                          child: Text(
+                                            restaurant.name,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${4.0 + (index % 10) / 10}',
-                                          style: TextStyle(
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.bold,
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.shade50,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.star,
+                                                size: 16,
+                                                color: Colors.green.shade700,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                restaurant.rating.toStringAsFixed(1),
+                                                style: TextStyle(
+                                                  color: Colors.green.shade700,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2), // Reduced spacing
-                              Text(
-                                'Italian • Continental • Chinese',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      '123 Main Street, City',
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      restaurant.cuisineType,
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 13,
@@ -573,62 +612,91 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2), // Reduced spacing
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.access_time,
-                                        size: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Open • ${index % 2 == 0 ? '11-11' : '10-10'}', // Shorter time format
-                                        style: TextStyle(
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          size: 16,
                                           color: Colors.grey[600],
-                                          fontSize: 12, // Smaller font
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 4), // Reduced spacing
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      Get.toNamed(Routes.restaurantTableBook, arguments: {'restaurantId': 'Restaurant ${index + 1}', 'restaurantName': 'Restaurant ${index + 1}'});
-                                    },
-                                    icon: const Icon(Icons.table_restaurant, size: 16, color: Color.fromARGB(255, 255, 255, 255),),
-                                    label: const Text('Book'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFFF6B00),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, // Reduced padding
-                                        vertical: 4, // Reduced padding
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            restaurant.address,
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 13,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Open • ${restaurant.openingTime.substring(0, 5)}-${restaurant.closingTime.substring(0, 5)}',
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            Get.toNamed(
+                                              Routes.restaurantTableBook,
+                                              arguments: {
+                                                'restaurantId': restaurant.id.toString(),
+                                                'restaurantName': restaurant.name
+                                              },
+                                            );
+                                          },
+                                          icon: const Icon(Icons.table_restaurant, size: 16, color: Colors.white),
+                                          label: const Text('Book'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFFFF6B00),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
 
         // Add View All button
         Padding(
