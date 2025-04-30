@@ -22,6 +22,7 @@ import 'package:bhukk1/screens/card_payment_screen.dart';
 import 'package:bhukk1/screens/upi_payment_screen.dart';
 import 'package:bhukk1/screens/privacy_policy_screen.dart';
 import 'package:bhukk1/screens/terms_screen.dart';
+import 'package:bhukk1/screens/search_screen.dart';
 import 'package:get/get.dart';
 
 class Routes {
@@ -51,6 +52,7 @@ class Routes {
   static const String orderDetails = '/order-details';
   static const String privacyPolicy = '/privacy-policy';
   static const String terms = '/terms';
+  static const String search = '/search';
 }
 
 class AppRoutes {
@@ -205,6 +207,11 @@ class AppRoutes {
     GetPage(
       name: Routes.terms,
       page: () => const TermsScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: Routes.search,
+      page: () => const SearchScreen(),
       transition: Transition.rightToLeft,
     ),
   ];

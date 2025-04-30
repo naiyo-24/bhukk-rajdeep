@@ -83,45 +83,51 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
-                          child: TextField(
-                            style: TextStyle(
-                              color: Colors.grey[800],
-                              fontSize: 16,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Search for restaurants, dishes...',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 15,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search_rounded,
-                                color: const Color(0xFFFF6B00).withOpacity(0.7),
-                                size: 24,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white.withOpacity(0.9),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: const Color(0xFFFF6B00).withOpacity(0.1),
-                                  width: 1.5,
+                          child: GestureDetector(
+                            onTap: () => Get.toNamed(Routes.search),
+                            child: AbsorbPointer(
+                              child: TextField(
+                                enabled: false,
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                  fontSize: 16,
                                 ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide(
-                                  color: const Color(0xFFFF6B00).withOpacity(0.3),
-                                  width: 1.5,
+                                decoration: InputDecoration(
+                                  hintText: 'Search for restaurants, dishes...',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 15,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: const Color(0xFFFF6B00).withOpacity(0.7),
+                                    size: 24,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.9),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: const Color(0xFFFF6B00).withOpacity(0.1),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: const Color(0xFFFF6B00).withOpacity(0.3),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 16,
+                                  ),
                                 ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
                               ),
                             ),
                           ),
