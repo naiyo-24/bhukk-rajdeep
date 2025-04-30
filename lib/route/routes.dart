@@ -154,8 +154,9 @@ class AppRoutes {
     GetPage(
       name: Routes.restaurantTableBook,
       page: () {
-        final args = Get.arguments;
-        final Restaurant? restaurant = args is Restaurant ? args : null;
+        final args = Get.arguments as Map<String, dynamic>?;
+        final restaurant = args?['restaurant'] as Restaurant?;
+        print('Creating RestaurantTableBook with restaurant: ${restaurant?.id}');
         return RestaurantTableBook(restaurant: restaurant);
       },
       transition: Transition.rightToLeft,
@@ -163,13 +164,10 @@ class AppRoutes {
     GetPage(
       name: Routes.menuCard,
       page: () {
-        final args = Get.arguments;
-        String restaurantName = '';
-        String restaurantId = '';
-        if (args is Map<String, dynamic>) {
-          restaurantName = args['restaurantName']?.toString() ?? '';
-          restaurantId = args['restaurantId']?.toString() ?? '';
-        }
+        final args = Get.arguments as Map<String, dynamic>?;
+        final restaurantName = args?['restaurantName'] as String? ?? '';
+        final restaurantId = args?['restaurantId'] as String? ?? '';
+        print('Creating MenuCard with ID: $restaurantId, Name: $restaurantName');
         return MenuCard(
           restaurantName: restaurantName,
           restaurantId: restaurantId,

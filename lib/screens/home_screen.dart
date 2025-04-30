@@ -516,7 +516,7 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: restaurants.length,
+                itemCount: restaurants.length > 3 ? 3 : restaurants.length,  // Only show 3 items
                 addAutomaticKeepAlives: false,
                 itemBuilder: (context, index) {
                   final restaurant = restaurants[index];

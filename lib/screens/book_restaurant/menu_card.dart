@@ -27,51 +27,187 @@ class _MenuCardState extends State<MenuCard> {
   bool _isLoading = true;
   
   String selectedCategory = 'All';
-  final List<String> categories = ['All', 'Main Course', 'Starters', 'Desserts'];
+  final List<String> categories = ['All'];
 
   @override
   void initState() {
     super.initState();
+    _isLoading = true;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _fetchRestaurantMenu();
   }
 
   Future<void> _fetchRestaurantMenu() async {
+    if (!mounted) return;
+    
     try {
-      final response = await _apiService.get(
-        ApiUrl.restaurantMenu.replaceAll('{id}', widget.restaurantId)
+      if (widget.restaurantId.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          menuItems = [];
+        });
+        return;
+      }
+
+      final String endpoint = ApiUrl.restaurantMenu.replaceAll(
+        'id', 
+        widget.restaurantId
       );
       
+      final response = await _apiService.get(endpoint);
+      
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         setState(() {
           menuItems = List<Map<String, dynamic>>.from(response.data);
+          final uniqueCategories = menuItems
+              .map((item) => item['category'] as String)
+              .toSet()
+              .toList();
+          
+          categories
+            ..clear()
+            ..add('All')
+            ..addAll(uniqueCategories);
           _isLoading = false;
         });
+      } else {
+        setState(() {
+          _isLoading = false;
+          menuItems = [];
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to load menu')),
+          );
+        }
       }
     } catch (e) {
-      print('Error fetching menu: $e');
-      setState(() => _isLoading = false);
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        menuItems = [];
+      });
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load menu: ${e.toString()}')),
+        const SnackBar(content: Text('Failed to load menu')),
       );
     }
+  }
+
+  Widget _buildMenuItem(Map<String, dynamic> item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: CachedNetworkImage(
+              imageUrl: item['image'],
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                color: Colors.grey[200],
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey[200],
+                height: 200,
+                child: const Icon(Icons.restaurant_menu, size: 50),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['name'],
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item['description'] ?? '',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '₹${item['price']}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Provider.of<CartProvider>(context, listen: false)
+                        .addItem(item['name'], item['price'], item['image'], 1);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('${item['name']} added to cart'),
+                      action: SnackBarAction(
+                        label: 'View Cart',
+                        onPressed: () => Get.toNamed(Routes.cart),
+                      ),
+                    ));
+                  },
+                  icon: const Icon(Icons.add_shopping_cart),
+                  label: const Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        title: Text(widget.restaurantName),
         elevation: 0,
-        backgroundColor: Theme.of(context).primaryColor,
-        title: Text(
-          '${widget.restaurantName} Menu',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -95,159 +231,28 @@ class _MenuCardState extends State<MenuCard> {
                               selectedCategory = categories[index];
                             });
                           },
-                          selectedColor: Theme.of(context).primaryColor,
-                          labelStyle: TextStyle(
-                            color: selectedCategory == categories[index]
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
                         ),
                       );
                     },
                   ),
                 ),
                 Expanded(
-                  child: menuItems.isEmpty
-                      ? const Center(
-                          child: Text('No menu items available'),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: menuItems.where((item) =>
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: menuItems
+                        .where((item) =>
                             selectedCategory == 'All' ||
-                            item['category'] == selectedCategory
-                          ).length,
-                          itemBuilder: (context, index) {
-                            final filteredItems = menuItems.where((item) =>
+                            item['category'] == selectedCategory)
+                        .length,
+                    itemBuilder: (context, index) {
+                      final filteredItems = menuItems
+                          .where((item) =>
                               selectedCategory == 'All' ||
-                              item['category'] == selectedCategory
-                            ).toList();
-                            final item = filteredItems[index];
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 180,
-                                      width: double.infinity,
-                                      child: CachedNetworkImage(
-                                        imageUrl: item['image'],
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => Container(
-                                          color: Colors.grey[200],
-                                          child: const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Container(
-                                          color: Colors.grey[200],
-                                          child: const Icon(Icons.restaurant_menu, size: 40),
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      item['name'],
-                                                      style: const TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      item['description'],
-                                                      style: TextStyle(
-                                                        color: Colors.grey[600],
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    '₹${item['price']}',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Theme.of(context).primaryColor,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      final cartProvider = Provider.of<CartProvider>(
-                                                        context,
-                                                        listen: false,
-                                                      );
-                                                      cartProvider.addItem(
-                                                        item['name'],
-                                                        item['price'],
-                                                        item['image'],
-                                                        1  // Adding initial quantity of 1
-                                                      );
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text('${item['name']} added to cart'),
-                                                          action: SnackBarAction(
-                                                            label: 'View Cart',
-                                                            onPressed: () {
-                                                              Get.toNamed(Routes.cart);
-                                                            },
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                    style: ElevatedButton.styleFrom(
-                                                      backgroundColor: Theme.of(context).primaryColor,
-                                                      foregroundColor: Colors.white,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                    ),
-                                                    child: const Text('Add to Cart'),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                              item['category'] == selectedCategory)
+                          .toList();
+                      return _buildMenuItem(filteredItems[index]);
+                    },
+                  ),
                 ),
               ],
             ),

@@ -47,7 +47,7 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
     try {
       final response = await _apiService.get(ApiUrl.restaurants);
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data; // Remove ['data'] since the response is directly an array
+        final List<dynamic> data = response.data;
         setState(() {
           restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
           _isLoading = false;
@@ -176,9 +176,10 @@ class _BookTableScreenState extends State<BookTableScreen> with SingleTickerProv
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
+              print('Navigating to restaurant: ${restaurant.id} - ${restaurant.name}');
               Get.toNamed(
                 Routes.restaurantTableBook,
-                arguments: restaurant,
+                arguments: {'restaurant': restaurant}, // Pass as named argument
               );
             },
             child: Column(
