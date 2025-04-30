@@ -17,7 +17,7 @@ class AppTheme {
   static const Color lightTextColor = Colors.white;
   
   // Shadow
-  static final BoxShadow defaultShadow = BoxShadow(
+  static BoxShadow defaultShadow = BoxShadow(
     color: Colors.black.withOpacity(0.08),
     blurRadius: 8,
     offset: const Offset(0, 2),
@@ -36,60 +36,8 @@ class AppTheme {
   static const double spacingL = 24.0;
   static const double spacingXL = 32.0;
 
-  // Text Styles
-  static const TextStyle headingLarge = TextStyle(
-    fontSize: 28.0,
-    fontWeight: FontWeight.bold,
-    letterSpacing: -0.5,
-    color: primaryTextColor,
-    height: 1.2,
-  );
-
-  static const TextStyle headingMedium = TextStyle(
-    fontSize: 24.0,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.3,
-    color: primaryTextColor,
-  );
-
-  static const TextStyle headingSmall = TextStyle(
-    fontSize: 20.0,
-    fontWeight: FontWeight.w600,
-    color: primaryTextColor,
-  );
-
-  static const TextStyle subtitle = TextStyle(
-    fontSize: 16.0,
-    fontWeight: FontWeight.w500,
-    color: secondaryTextColor,
-  );
-
-  static const TextStyle bodyLarge = TextStyle(
-    fontSize: 16.0, 
-    color: primaryTextColor,
-    height: 1.5,
-  );
-
-  static const TextStyle bodyMedium = TextStyle(
-    fontSize: 14.0,
-    color: primaryTextColor,
-    height: 1.5,
-  );
-
-  static const TextStyle bodySmall = TextStyle(
-    fontSize: 12.0,
-    color: secondaryTextColor,
-  );
-
-  static const TextStyle buttonText = TextStyle(
-    fontSize: 16.0,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
-    color: Colors.white,
-  );
-
   // Button Styles
-  static final ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
+  static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: primaryColor,
     foregroundColor: Colors.white,
     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -99,7 +47,7 @@ class AppTheme {
     elevation: 0,
   );
   
-  static final ButtonStyle secondaryButtonStyle = ElevatedButton.styleFrom(
+  static ButtonStyle secondaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: Colors.white,
     foregroundColor: primaryColor,
     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -111,7 +59,7 @@ class AppTheme {
   );
 
   // Card Decoration
-  static final BoxDecoration cardDecoration = BoxDecoration(
+  static BoxDecoration cardDecoration = BoxDecoration(
     color: cardColor,
     borderRadius: BorderRadius.circular(borderRadiusMedium),
     boxShadow: [defaultShadow],
@@ -229,14 +177,63 @@ class AppTheme {
           borderRadius: BorderRadius.circular(borderRadiusSmall),
         ),
       ),
-      textTheme: const TextTheme(
-        displayLarge: headingLarge,
-        displayMedium: headingMedium,
-        displaySmall: headingSmall,
-        titleLarge: subtitle,
-        bodyLarge: bodyLarge,
-        bodyMedium: bodyMedium,
-        bodySmall: bodySmall,
+      textTheme: TextTheme(
+        // Title styles
+        displayLarge: const TextStyle(
+          fontSize: 28.0,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.5,
+          color: primaryTextColor,
+          height: 1.2,
+        ),
+        displayMedium: const TextStyle(
+          fontSize: 24.0,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.3,
+          color: primaryTextColor,
+        ),
+        displaySmall: const TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.w600,
+          color: primaryTextColor,
+        ),
+        titleLarge: const TextStyle(
+          fontSize: 18.0,
+          fontWeight: FontWeight.w600,
+          color: primaryTextColor,
+        ),
+        titleMedium: const TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w500,
+          color: primaryTextColor,
+        ),
+        titleSmall: const TextStyle(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500,
+          color: primaryTextColor,
+        ),
+        // Body styles
+        bodyLarge: const TextStyle(
+          fontSize: 16.0, 
+          color: primaryTextColor,
+          height: 1.5,
+        ),
+        bodyMedium: const TextStyle(
+          fontSize: 14.0,
+          color: primaryTextColor,
+          height: 1.5,
+        ),
+        bodySmall: const TextStyle(
+          fontSize: 12.0,
+          color: secondaryTextColor,
+        ),
+        // Label styles
+        labelLarge: const TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+          color: Colors.white,
+        ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
