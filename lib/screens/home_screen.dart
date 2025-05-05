@@ -11,6 +11,7 @@ import '../services/api_service.dart';
 import '../services/api_url.dart';
 import '../models/restaurant.dart';
 import '../models/carousel.dart';
+import '../controllers/carousel_controller.dart'; // Updated import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -164,6 +165,7 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
   List<Restaurant> restaurants = [];
   List<Carousel> carousels = [];
   bool _isLoadingCarousels = true;
+  late BhukkCarouselController _carouselController; // Updated type
 
   @override
   void initState() {
@@ -174,7 +176,8 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     );
     _animationController.forward();
     _fetchRestaurants();
-    _fetchCarousels();
+    // We don't need to call _fetchCarousels() anymore since we're using the controller
+    _carouselController = Get.put(BhukkCarouselController()); // The controller handles API fetching
   }
 
   Future<void> _fetchRestaurants() async {
@@ -195,23 +198,7 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     }
   }
 
-  Future<void> _fetchCarousels() async {
-    try {
-      final response = await _apiService.get(ApiUrl.carousels);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        setState(() {
-          carousels = data.map((json) => Carousel.fromJson(json)).toList();
-          _isLoadingCarousels = false;
-        });
-      }
-    } catch (e) {
-      print('Error fetching carousels: $e');
-      setState(() {
-        _isLoadingCarousels = false;
-      });
-    }
-  }
+  // _fetchCarousels has been removed as we're now using the controller
 
   @override
   void didChangeDependencies() {
@@ -429,13 +416,26 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _isLoadingCarousels
+        Obx(() => _carouselController.isLoading.value
+          ? const SizedBox(
+              height: 240,
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : _carouselController.carousels.isEmpty
             ? const SizedBox(
                 height: 240,
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: Text(
+                    'No offers available',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               )
             : AdsCarousel(
-                carousels: carousels,
+                carousels: _carouselController.carousels,
                 height: 240,
                 viewportFraction: 0.92,
                 onTap: (String? link) {
@@ -445,6 +445,7 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
                   }
                 },
               ),
+        ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 12, 16, 8), // Reduced padding from 24 to 12
@@ -759,113 +760,185 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
         
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.grey[900]!,
-                Colors.black,
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+          color: Colors.grey[100],
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Bhukk',
-                      style: TextStyle(
-                        color: const Color(0xFFFF6B00),
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' - Powered by ',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Naiyo24',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Made for India 🇮🇳',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Crafted in Kolkata with ♥️',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 12,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 16),
+              // Logo and company section
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.facebook),
-                    color: Colors.grey[400],
-                    iconSize: 24,
-                    onPressed: () {},
+                  Text(
+                    'Bhukk',
+                    style: TextStyle(
+                      color: const Color(0xFFFF6B00),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.instagram),
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 20,
+                    width: 1,
                     color: Colors.grey[400],
-                    iconSize: 24,
-                    onPressed: () {},
                   ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.twitter),
-                    color: Colors.grey[400],
-                    iconSize: 24,
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(FontAwesomeIcons.linkedin),
-                    color: Colors.grey[400],
-                    iconSize: 24,
-                    onPressed: () {},
+                  const SizedBox(width: 8),
+                  Text(
+                    'by Naiyo24',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B00),
-                  borderRadius: BorderRadius.circular(2),
+              const SizedBox(height: 24),
+
+              // Links section
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // First column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _footerSectionTitle('Company'),
+                        _footerLink('About Us'),
+                        _footerLink('Blog'),
+                        _footerLink('Careers'),
+                        _footerLink('Contact'),
+                      ],
+                    ),
+                  ),
+                  // Second column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _footerSectionTitle('For Restaurants'),
+                        _footerLink('Partner With Us'),
+                        _footerLink('Apps For You'),
+                        _footerLink('Business App'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Third column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _footerSectionTitle('Learn More'),
+                        _footerLink('Privacy'),
+                        _footerLink('Security'),
+                        _footerLink('Terms'),
+                        _footerLink('Sitemap'),
+                      ],
+                    ),
+                  ),
+                  // Fourth column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _footerSectionTitle('Social Links'),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(FontAwesomeIcons.instagram),
+                              color: Colors.grey[700],
+                              iconSize: 18,
+                              constraints: BoxConstraints.tightFor(width: 36, height: 36),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {},
+                            ),
+                            IconButton(
+                              icon: const Icon(FontAwesomeIcons.twitter),
+                              color: Colors.grey[700],
+                              iconSize: 18,
+                              constraints: BoxConstraints.tightFor(width: 36, height: 36),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {},
+                            ),
+                            IconButton(
+                              icon: const Icon(FontAwesomeIcons.facebook),
+                              color: Colors.grey[700],
+                              iconSize: 18,
+                              constraints: BoxConstraints.tightFor(width: 36, height: 36),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {},
+                            ),
+                            IconButton(
+                              icon: const Icon(FontAwesomeIcons.linkedin),
+                              color: Colors.grey[700],
+                              iconSize: 18,
+                              constraints: BoxConstraints.tightFor(width: 36, height: 36),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], height: 1),
+              const SizedBox(height: 20),
+              
+              // Footer
+              Center(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Made with ♥ in India',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '🇮🇳',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'By continuing past this page, you agree to our Terms of Service, Cookie Policy, Privacy Policy.',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 11,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '© ${DateTime.now().year} Bhukk Ltd. All rights reserved.',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 11,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -873,6 +946,36 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  Widget _footerSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.grey[800],
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _footerLink(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GestureDetector(
+        onTap: () {},
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:get/get.dart';
-import 'login_screen.dart';
+import '../controllers/splash_controller.dart';
+import '../route/routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -10,86 +10,55 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  Timer? _navigationTimer;
-
+class _SplashScreenState extends State<SplashScreen> {
+  final SplashController _splashController = Get.put(SplashController());
+  
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
-    _controller.forward();
-
-    // Navigate to home screen after 3 seconds
-    _navigationTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Get.offNamed('/home');
-      }
-    });
+    _initialize();
   }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _navigationTimer?.cancel();
-    super.dispose();
+  
+  Future<void> _initialize() async {
+    // Wait for images to be preloaded
+    await _splashController.preloadCarouselImages(context);
+    
+    // Use a minimum display time for splash screen
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // Navigate to home screen
+    Get.offAllNamed(Routes.home);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Stack(
-            children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/bhukk_logo.png',
-                      height: 350,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 2), // Gap between logo and tagline
-                    const Text(
-                      'Order Karo, Bhukk Mitao...',
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 208, 105, 15),
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ],
-                ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo or splash image
+            Image.asset(
+              'assets/images/splash.png',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 24),
+            // App name with animation
+            const Text(
+              'BHUKK',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFF6B00),
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20), // Add padding at the bottom
-                  child: const Text(
-                    'Powered by Naiyo24',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 32),
+            // Loading indicator
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B00)),
+            ),
+          ],
         ),
       ),
     );

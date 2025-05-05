@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         title: 'Bhukk App',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.getThemeData(),
-        initialRoute: '/splash',
+        initialRoute: Routes.splash, // Set splash as initial route
         getPages: AppRoutes.routes,
         defaultTransition: Transition.cupertino,
         transitionDuration: const Duration(milliseconds: 250),
