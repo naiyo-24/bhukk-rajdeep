@@ -11,8 +11,8 @@ import 'package:bhukk1/screens/login_screen.dart';
 import 'package:bhukk1/screens/notification_screen.dart';
 import 'package:bhukk1/screens/order_history_screen.dart';
 import 'package:bhukk1/screens/order_liquor/liquor_shops.dart';
-import 'package:bhukk1/screens/order_liquor/order_liquor_screen.dart' as orderLiquor;
-import 'package:bhukk1/screens/order_liquor_screen.dart';
+import 'package:bhukk1/screens/order_liquor/order_liquor_screen.dart';
+import 'package:bhukk1/screens/liquor_showcase_screen.dart';
 import 'package:bhukk1/screens/payment_screen.dart';
 import 'package:bhukk1/screens/settings_screen.dart';
 import 'package:bhukk1/screens/signup_screen.dart';
@@ -94,12 +94,7 @@ class AppRoutes {
     ),
     GetPage(
       name: Routes.orderLiquor,
-      page: () {
-        // Safely handle arguments that might be null
-        final args = Get.arguments;
-        final orderLiquor.LiquorOrder? order = args is orderLiquor.LiquorOrder ? args : null;
-        return orderLiquor.OrderLiquorScreen(order: order);
-      },
+      page: () => const LiquorShowcaseScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

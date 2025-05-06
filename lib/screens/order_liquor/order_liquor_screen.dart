@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
 class OrderLiquorScreen extends StatelessWidget {
-  final LiquorOrder? order;
+  final dynamic order;
 
   const OrderLiquorScreen({Key? key, required this.order}) : super(key: key);
 
@@ -45,28 +45,54 @@ class OrderLiquorScreen extends StatelessWidget {
       );
     }
 
+    // Parse order data safely to handle different formats
+    String name = 'Liquor Order';
+    String id = '0';
+    String imageUrl = '';
+    String description = 'Description not available';
+
+    if (order is Map<String, dynamic>) {
+      name = order['name']?.toString() ?? 'Liquor Order';
+      id = order['id']?.toString() ?? '0';
+      imageUrl = order['image_url'] ?? order['imageUrl'] ?? order['image'] ?? '';
+      description = order['description']?.toString() ?? 'Description not available';
+    } else if (order is LiquorOrder) {
+      name = order.name;
+      id = order.id;
+      imageUrl = order.imageUrl;
+      description = order.description;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(order!.name),
+        title: Text(name),
       ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 260,
-            width: double.infinity,
-            child: Hero(
-              tag: 'liquor-${order!.id}',
-              child: _buildLiquorImage(order!.imageUrl),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 260,
+              width: double.infinity,
+              child: Hero(
+                tag: 'liquor-$id',
+                child: imageUrl.isNotEmpty 
+                  ? _buildLiquorImage(imageUrl)
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Center(child: Icon(Icons.liquor, size: 80, color: Colors.grey)),
+                    ),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              order!.description,
-              style: const TextStyle(fontSize: 16),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                description,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
