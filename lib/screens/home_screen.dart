@@ -5,6 +5,7 @@ import '../widgets/ads_carousel.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/bhukkads_carousel.dart';
 import '../widgets/confetti_overlay.dart';
+import '../widgets/category_section.dart';
 import '../route/routes.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
@@ -164,7 +165,6 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
   bool _isLoading = true;
   List<Restaurant> restaurants = [];
   List<Carousel> carousels = [];
-  bool _isLoadingCarousels = true;
   late BhukkCarouselController _carouselController; // Updated type
 
   @override
@@ -232,47 +232,7 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     super.dispose();
   }
 
-  Widget _buildCategoryCard(String title, String imageUrl, VoidCallback onTap) {
-    final size = 90.0; // Reduced from 120.0
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size + 24, // Added extra height for text
-        margin: const EdgeInsets.only(right: 12), // Reduced from 16
-        child: Column(
-          children: [
-            Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08), // Reduced shadow opacity
-                    blurRadius: 4, // Reduced blur
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13, // Reduced from 14
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildActionBox({
     required String title,
@@ -394,24 +354,6 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      {
-        'title': 'North Indian',
-        'image': 'assets/icons/north_indian.webp',
-      },
-      {
-        'title': 'South Indian',
-        'image': 'assets/icons/south_indian.jpg',
-      },
-      {
-        'title': 'Chinese',
-        'image': 'assets/icons/chinese.webp',
-      },
-      {
-        'title': 'Italian',
-        'image': 'assets/icons/italian.jpg',
-      },
-    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,34 +389,8 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
               ),
         ),
 
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 8), // Reduced padding from 24 to 12
-          child: Text(
-            'Categories',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-
-        SizedBox(
-          height: 160, // Reduced from 200
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            physics: const BouncingScrollPhysics(),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return _buildCategoryCard(
-                category['title']!,
-                category['image']!,
-                () => Get.toNamed(Routes.categoryItems, arguments: {'category': category['title']!}),
-              );
-            },
-          ),
-        ),
+        // Using our new CategorySection widget
+        const CategorySection(),
 
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 1), // Reduced top padding to 0 and bottom to 12
